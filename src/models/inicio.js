@@ -1,0 +1,28 @@
+const database = require("../config/database");
+
+const COLUMNS = "id, titulo, subtitulo, video";
+
+async function get() {
+  const [rows] = await database.query(
+    `SELECT ${COLUMNS} FROM inicio ORDER BY id LIMIT 1`,
+  );
+  return rows[0] || null;
+}
+
+async function update(fields) {
+  const current = await get();
+  if (!current) {
+    return null;
+  }
+  const entries = Object.entries(fields);
+  const assignments = entries.map(([field]) => `${field} = ?`);
+  const values = entries.map(([, value]) => value);
+
+  await database.execute(
+    `UPDATE inicio SET ${assignments.join(", ")} WHERE id = ?`,
+    [...values, current.id],
+  );
+  return get();
+}
+
+module.exports = { get, update };
